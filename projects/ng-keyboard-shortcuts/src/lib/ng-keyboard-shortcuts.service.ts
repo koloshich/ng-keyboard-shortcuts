@@ -1,5 +1,12 @@
-import { Injectable, OnDestroy } from "@angular/core";
-import { _KEYCODE_MAP, _MAP, _SHIFT_MAP, _SPECIAL_CASES, modifiers } from "./keys";
+import { Inject, Injectable, OnDestroy } from "@angular/core";
+import {
+    _INVERTED_SHIFT_MAP,
+    _KEYCODE_MAP,
+    _MAP,
+    _SHIFT_MAP,
+    _SPECIAL_CASES,
+    modifiers
+} from "./keys";
 import {
     BehaviorSubject,
     fromEvent,
@@ -32,6 +39,7 @@ import {
     throttle
 } from "rxjs/operators";
 import { allPass, any, difference, identity, isFunction, isNill, maxArrayProp } from "./utils";
+import { DOCUMENT } from "@angular/common";
 
 /**
  * @ignore
@@ -129,7 +137,7 @@ export class KeyboardShortcutsService implements OnDestroy {
             } as ParsedShortcut);
     };
 
-    private keydown$ = fromEvent(document, "keydown");
+    private keydown$ = fromEvent(this.document, "keydown");
     /**
      * fixes for firefox prevent default
      * on click event on button focus:
@@ -144,7 +152,7 @@ export class KeyboardShortcutsService implements OnDestroy {
     private ignore$ = this.pressed$.pipe(
         filter(e => e.event.defaultPrevented),
         switchMap(() => this.clicks$.pipe(first())),
-        tap(e => {
+        tap((e: any) => {
             e.preventDefault();
             e.stopPropagation();
         }),
@@ -153,9 +161,9 @@ export class KeyboardShortcutsService implements OnDestroy {
     /**
      * @ignore
      */
-    private clicks$ = fromEvent(document, "click", { capture: true });
+    private clicks$ = fromEvent(this.document, "click", { capture: true });
 
-    private keyup$ = fromEvent(document, "keyup");
+    private keyup$ = fromEvent(this.document, "keyup");
 
     /**
      * @ignore
@@ -324,7 +332,7 @@ export class KeyboardShortcutsService implements OnDestroy {
     /**
      * @ignore
      */
-    constructor() {
+    constructor(@Inject(DOCUMENT) private document: any) {
         this.subscriptions.push(
             this.keydownSequence$.subscribe(),
             this.keydownCombo$.subscribe()
@@ -351,12 +359,12 @@ export class KeyboardShortcutsService implements OnDestroy {
         if (_KEYCODE_MAP[event.which]) {
             return [_KEYCODE_MAP[event.which], event.shiftKey];
         }
-        // in case event key is lower case but regisered key is upper case
+        // in case event key is lower case but registered key is upper case
         // return it in the lower case
         if (String.fromCharCode(event.which).toLowerCase() !== event.key) {
             return [String.fromCharCode(event.which).toLowerCase(), event.shiftKey];
         }
-        return [event.key, true];
+        return [event.key, event.shiftKey];
     }
 
     private characterFromEvent(event) {
@@ -452,12 +460,39 @@ export class KeyboardShortcutsService implements OnDestroy {
                 }
 
                 return event => {
+                    const isUpper = key === key.toUpperCase();
+                    const isNonAlpha = (/[^a-zA-Z\d\s:]/).test(key);
+                    const inShiftMap = _INVERTED_SHIFT_MAP[key];
                     let [characters, shiftKey] = this.characterFromEvent(event);
+                    const allModifiers = Object.keys(modifiers).map((key) => {
+                        return modifiers[key];
+                    })
+                    const hasModifiers = allModifiers.some(modifier => event[modifier]);
                     characters = Array.isArray(characters)
                         ? [...characters, event.key]
                         : [characters, event.key];
+
+                    // if has modifiers:
+                    // we want to make sure it is not upper case letters
+                    // (because upper has modifiers so we want continue the check)
+                    // we also want to make sure it is not alphanumeric char like ? / ^ & and others (since those could require modifiers as well)
+                    // we also want to check this only if the length of
+                    // of the keys is one (i.e the command key is "?" or "c"
+                    // this while check is here to verify that:
+                    // if registered key like "e"
+                    // it won't be fired when clicking ctrl + e, or any modifiers + the key
+                    // we only want to trigger when the single key is clicked alone
+                    // thus all these edge cases.
+                    // hopefully this would cover all cases
+                    // TODO:: find a way simplify this
+                    if (hasModifiers
+                        && (!isUpper || isNonAlpha)
+                        && !inShiftMap
+                        && keys.length === 1) {
+                        return false;
+                    }
                     return characters.some(char => {
-                        if (char === key && shiftKey) {
+                        if (char === key && isUpper) {
                             return true;
                         }
                         return key === char;
@@ -465,6 +500,7 @@ export class KeyboardShortcutsService implements OnDestroy {
                 };
             });
     };
+
 
     /**
      * @ignore

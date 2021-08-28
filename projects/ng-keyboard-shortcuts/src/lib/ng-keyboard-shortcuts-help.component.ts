@@ -1,7 +1,8 @@
 import {
     ApplicationRef,
     Component,
-    ComponentFactoryResolver, ElementRef, HostBinding,
+    ComponentFactoryResolver,
+    ElementRef,
     Injector,
     Input,
     OnDestroy,
@@ -15,14 +16,21 @@ import { TemplatePortal } from "./portal";
 import { KeyboardShortcutsService } from "./ng-keyboard-shortcuts.service";
 import { KeyboardShortcutsHelpService } from "./ng-keyboard-shortcuts-help.service";
 import { animate, style, transition, trigger } from "@angular/animations";
-import { distinctUntilChanged, map } from 'rxjs/operators';
-import { groupBy } from "./utils";
+import { distinctUntilChanged, map } from "rxjs/operators";
+import { groupBy } from './utils';
 import { SubscriptionLike } from "rxjs";
+import { Shortcut } from './ng-keyboard-shortcuts.interfaces';
+
 
 /**
  * @ignore
  */
-const scrollAbleKeys = new Map([[31, 1], [38,1], [39, 1], [40, 1]]);
+const scrollAbleKeys = new Map([
+    [31, 1],
+    [38, 1],
+    [39, 1],
+    [40, 1]
+]);
 /**
  * @ignore
  */
@@ -48,8 +56,11 @@ const preventDefaultForScrollKeys = e => {
 /**
  * @ignore
  */
-let scrollEvents = [{name: 'wheel', callback: null}, {name: 'touchmove', callback: null}, {name: 'DOMMouseScroll', callback: null} ];
-
+let scrollEvents = [
+    { name: "wheel", callback: null },
+    { name: "touchmove", callback: null },
+    { name: "DOMMouseScroll", callback: null }
+];
 
 /**
  * @ignore
@@ -57,13 +68,13 @@ let scrollEvents = [{name: 'wheel', callback: null}, {name: 'touchmove', callbac
 const disableScroll = (ignore: string) => {
     scrollEvents = scrollEvents.map(event => {
         const callback = preventDefault(ignore);
-        window.addEventListener(event.name, callback, {passive: false});
+        window.addEventListener(event.name, callback, { passive: false });
         return {
             ...event,
             callback
-        }
+        };
     });
-    window.addEventListener('keydown', preventDefaultForScrollKeys);
+    window.addEventListener("keydown", preventDefaultForScrollKeys);
 };
 /**
  * @ignore
@@ -74,9 +85,9 @@ const enableScroll = () => {
         return {
             ...event,
             callback: null
-        }
+        };
     });
-    window.removeEventListener('keydown', preventDefaultForScrollKeys);
+    window.removeEventListener("keydown", preventDefaultForScrollKeys);
 };
 
 /**
@@ -126,7 +137,35 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
      */
     private _key: string;
 
-    public className = 'help-modal';
+    public className = "help-modal";
+
+    /**
+     * A description that will be shown in the help menu.
+     * MUST almost provide a label for the key to be shown
+     * in the help menu
+     */
+    @Input() keyDescription: string;
+
+    /**
+     * The label to group by the help menu toggle shortcut.
+     * must provide a description for the key to show
+     * in the help menu
+     */
+    @Input() keyLabel: string;
+
+    /**
+     * The label to group by the help menu close shortcut.
+     * must provide a description for the key to show
+     * in the help menu
+     */
+    @Input() closeKeyLabel: string;
+
+    /**
+     * A description that will be shown in the help menu.
+     * MUST almost provide a label for the key to be shown
+     * in the help menu
+     */
+    @Input() closeKeyDescription: string;
 
     /**
      * The shortcut to show/hide the help screen
@@ -137,14 +176,20 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
         if (!value) {
             return;
         }
-        if(this.clearIds) {
+        if (this.clearIds) {
             this.keyboard.remove(this.clearIds);
         }
-        this.clearIds = this.keyboard.add({
+        this.clearIds = this.addShortcut({
             key: value,
             preventDefault: true,
-            command: () => this.toggle()
+            command: () => this.toggle(),
+            description: this.keyDescription,
+            label: this.keyLabel
         });
+    }
+
+    private addShortcut(shortcut: Shortcut) {
+        return this.keyboard.add(shortcut);
     }
     private _closeKey;
     @Input()
@@ -156,11 +201,13 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
         if (this.closeKeyIds) {
             this.keyboard.remove(this.closeKeyIds);
         }
-        this.closeKeyIds = this.keyboard.add({
+        this.closeKeyIds = this.addShortcut({
             key: value,
             preventDefault: true,
-            command: () => this.hide()
-        });
+            command: () => this.hide(),
+            description: this.closeKeyDescription,
+            label: this.closeKeyDescription
+        })
     }
 
     /**
@@ -231,13 +278,13 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
      * Check if help screen is visible.
      * @returns boolean
      */
-    visible() : boolean {
+    visible(): boolean {
         return this.bodyPortalHost.hasAttached();
     }
     /**
      * Hide the help screen manually.
      */
-    hide() : KeyboardShortcutsHelpComponent {
+    hide(): KeyboardShortcutsHelpComponent {
         if (this.disableScrolling) {
             enableScroll();
         }
@@ -271,7 +318,7 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
     /**
      * Show/Hide the help screen manually.
      */
-    toggle() : KeyboardShortcutsHelpComponent {
+    toggle(): KeyboardShortcutsHelpComponent {
         this.visible() ? this.hide() : this.reveal();
         return this;
     }
@@ -298,7 +345,10 @@ export class KeyboardShortcutsHelpComponent implements OnInit, OnDestroy {
      */
     ngOnInit() {
         this.subscription = this.keyboardHelp.shortcuts$
-            .pipe(distinctUntilChanged(), map(shortcuts => groupBy(shortcuts, "label")))
+            .pipe(
+                distinctUntilChanged(),
+                map(shortcuts => groupBy(shortcuts, "label"))
+            )
             .subscribe(shortcuts => {
                 this.shortcuts = shortcuts;
                 this.labels = Object.keys(shortcuts);

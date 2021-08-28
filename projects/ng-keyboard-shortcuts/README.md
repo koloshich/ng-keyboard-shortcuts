@@ -1,16 +1,31 @@
 # ng-keyboard-shortcuts
-[![npm version](https://badge.fury.io/js/ng-keyboard-shortcuts.svg)](https://badge.fury.io/js/ng-keyboard-shortcuts) [![Join the chat at https://gitter.im/ng-keyboard-shortcuts/community](https://badges.gitter.im/ng-keyboard-shortcuts/community.svg)](https://gitter.im/ng-keyboard-shortcuts/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)  
-  
+<p>
+      <a href="https://badge.fury.io/js/ng-keyboard-shortcuts" alt="npm version" target="_blank">
+        <img src="https://badge.fury.io/js/ng-keyboard-shortcuts.svg" />
+      </a>
+      <a href="https://badge.fury.io/js/ng-keyboard-shortcuts" alt="npm downloads per month" target="_blank">
+        <img src="https://img.shields.io/npm/dw/ng-keyboard-shortcuts" />
+      </a>
+      <a href="https://bundlephobia.com/result?p=ng-keyboard-shortcuts" alt="Bundle size" target="_blank" >
+        <img src="https://img.shields.io/bundlephobia/minzip/ng-keyboard-shortcuts" />
+      </a>
+      <a href="https://gitter.im/ng-keyboard-shortcuts/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" alt="Join the chat at our community" target="_blank">
+        <img src="https://badges.gitter.im/ng-keyboard-shortcuts/community.svg" />
+      </a>
+       <a href="https://img.shields.io/npm/l/ng-keyboard-shortcuts" target="_blank" alt="MIT License">
+        <img src="https://img.shields.io/npm/l/ng-keyboard-shortcuts" />
+      </a>
+</p>  
   
 An Angular module that provides a declarative API using components/directive to manage Keyboard shortcuts in scalable way.  
   
-This documentation is for version **^7.0.0/8.0.0**.  For older versions (**2.0.0/6.0.0**) please [click here](https://github.com/omridevk/ng-keyboard-shortcuts/tree/2.0.0)  
+This documentation is for version **7.0.0+ (8,9) and any future versions**.  For older versions (**2.0.0/6.0.0**) please [click here](https://github.com/omridevk/ng-keyboard-shortcuts/tree/2.0.0)  
   
 See demo here:  
 [demo](https://codesandbox.io/s/yvyovny43v)  
   
 #### important note  
-We recommend to update to version **7.0.0/8.0.0** and use the new component API which has a better memory management than previous version.  
+We recommend to update to version **7.0.0 and above** and use the new component API which has a better memory management than previous version.  
   
 Compatible with Angular 5+  
   
@@ -22,12 +37,13 @@ Compatible with Angular 5+
     * [Combinations](#combinations)
     * [Sequences](#sequences)
     * [Components](#components)  
-        * [Keyboardshortcuts](#ng-keyboard-shortcuts-1)  
+        * [Keyboardshortcuts](#ng-keyboard-shortcuts)  
         * [HelpScreen](#ng-keyboard-shortcuts-help)  
     * [Directive](#directive)  
-        * [ngKeyboardShortcut](#ngKeyboardShortcut)  
+        * [ngKeyboardShortcuts](#ngKeyboardShortcuts)  
     * [Service](#service)  
-        * [KeyboardShortcutsHelpService](#KeyboardShortcutsHelpService)  
+        * [KeyboardShortcutsHelpService](#KeyboardShortcutsHelpService)
+        * [KeyboardShortcutsSelectService](#KeyboardShortcutsSelectService)  
 * [API](#api)  
     * [Types](#types)  
         * [AllowIn](#AllowIn)  
@@ -224,7 +240,11 @@ Should be placed in the root of your app, preferably in app.component.html
 | Name   |      Type      |  default         | description |  
 |----------|:-------------:|-----------------:  |:-------------:|  
 | key |  ```string``` | none | The key to show/hide the help modal
+| keyDescription |  ```string``` | none | Description to show in the menu shortcut list for the toggle shortcut
+| keyLabel |  ```string``` | none | Label that can be used to group shortcuts together in the help menu
 | closeKey |  ```string``` | none | Close key to be used to close the modal
+| closeKeyDescription |  ```string``` | none | Description to show in the menu shortcut list for closing the modal shortcut
+| closeKeyLabel |  ```string``` | none | Label that can be used to group shortcuts together in the help menu
 | title |  ```string``` | "Keyboard shortcuts" | The title of the help screen
 | emptyMessage |  ```string``` | "No shortcuts available" | What message to show when no commands are registered when help modal is opened.
 | disableScrolling |  ```boolean``` | true | Whether to disable body scrolling when modal help screen is opened.
@@ -262,19 +282,22 @@ export class AppComponent {
    <h1>  
       Welcome to {{ title }}!  
    </h1>  
-   <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="Help"></ng-keyboard-shortcut-help>  
+   <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'"></ng-keyboard-shortcuts-help>  
 </div>  
   
 ```  
   
 ## Directive  
-### ngKeyboardShortcut  
-Directive that can only be used for focusable elements, such as textarea, select, input, etc...  
+### ngKeyboardShortcuts 
+Directive can only be used for focusable elements, such as textarea, select, input, etc...  
+##### Important: 
+The shortcut then will only be active while the element is in __focus__.
   
+
 #### Inputs  
 | Name   |      Type      |  default         | description |  
 |----------|:-------------:|-----------------:  |:-------------:|  
-| ngKeyboardShortcut |  ```Shortcut``` / ```Shortcut``` | [] | List of shortcuts see [types](#shortcut) |  
+| ngKeyboardShortcuts |  ```Shortcut``` / ```Shortcut``` | [] | List of shortcuts see [types](#shortcut) |  
 | disabled |    `boolean`  |   `false`   | disable the shortcuts for the directive |  
 | disableScrolling | `boolean` | `true` | disable body scrolling while modal is open |  
   
@@ -286,7 +309,7 @@ import { ShortcutInput, ShortcutEventOutput, KeyboardShortcutsComponent } from "
   
 @Component({  
     selector: 'demo-component',  
-    template: "<input [ngKeyboardShortcut]="shortcuts" />"  
+    template: "<input [ngKeyboardShortcuts]="shortcuts" />"  
 })  
 export class DemoComponent implements AfterViewInit {  
   
@@ -319,7 +342,16 @@ Since shortcuts can be added or removed during the lifecycle of the app, an obse
 | properties   |  type   | description |  
 |----------|:---------:|:-------------:|  
 | shortcuts$ | ```Observable<{ key: string, label: string, description: string }[]>```| Array of registered shortcuts across the whole app |  
-  
+ 
+ 
+## KeyboardShortcutsSelectService
+
+A singleton service that can be used globally to listen to any registered shortcut:
+| Name  | Input | Return  | Description |  
+|----------|:------|:------:|:-------------:|  
+| select | `string` - key to listen to events (example: `'cmd + e'`) | `Observable<ShortcutEventOutput>` |Listen to specific key events (**will only work for registered keys**) |
+ 
+ 
 # API:  
   
 ## Types:  
@@ -405,4 +437,4 @@ type = ShortcutEventOutput {
   
 # License  
   
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
