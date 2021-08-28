@@ -1,6 +1,6 @@
 {
   "name": "@koloshich/ng-keyboard-shortcuts-app",
-  "version": "8.2.7",
+  "version": "8.2.8",
   "description": "Dead Simple Keyboard Shortcuts Management for Angular 2+",
   "keywords": [
     "angular",
@@ -31,7 +31,7 @@
     "build:prod": "npm run clean && npm run copy && ng build --prod ng-keyboard-shortcuts",
     "copy": "node ./scripts/copy.js",
     "build:watch": "npm run clean && ng build ng-keyboard-shortcuts --watch",
-    "publish": "npm run build:prod && npm publish dist/ng-keyboard-shortcuts",
+    "publish": "npm run build:prod && npm publish --access public dist/ng-keyboard-shortcuts",
     "package": "npm run build:prod && npm run npm-pack",
     "lint": "ng lint",
     "e2e": "ng e2e"
