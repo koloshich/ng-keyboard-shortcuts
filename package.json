@@ -1,5 +1,5 @@
 {
-  "name": "ng-keyboard-shortcuts-app",
+  "name": "@koloshich/ng-keyboard-shortcuts-app",
   "version": "9.1.17",
   "description": "Dead Simple Keyboard Shortcuts Management for Angular 2+",
   "keywords": [
@@ -10,16 +10,20 @@
     "rxjs"
   ],
   "license": "MIT",
-  "author": "Omri Katz <omrikatz12@gmail.com> (https://github.com/omridevk)",
-  "homepage": "https://omridevk.github.io/ng-keyboard-shortcuts/",
-  "repository": "github.com/omridevk/ng-keyboard-shortcuts",
-  "bugs": "https://github.com/omridevk/ng-keyboard-shortcuts/issues",
+  "author": "Original author: Omri Katz <omrikatz12@gmail.com> (https://github.com/omridevk), author of fork: Vadim Koloshich <koloshich@gmail.com> (https://github.com/koloshich)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koloshich/ng-keyboard-shortcuts"
+  },
+  "bugs": {
+    "url": "https://github.com/koloshich/ng-keyboard-shortcuts/issues"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host=0.0.0.0",
     "build": "ng build",
     "test": "ng test",
-    "clean": "rm -rf dist/",
+    "clean": "rimraf dist/",
     "serve": "npm-run-all --parallel start build:watch",
     "npm-pack": "cd dist/ng-keyboard-shortcuts && npm pack",
     "compodoc": "npx compodoc -p projects/ng-keyboard-shortcuts/tsconfig.lib.json --disableLifeCycleHooks --hideGenerator -d ./docs --disablePrivate",
@@ -27,7 +31,7 @@
     "build:prod": "npm run clean && npm run copy && ng build --prod ng-keyboard-shortcuts",
     "copy": "node ./scripts/copy.js",
     "build:watch": "npm run clean && ng build ng-keyboard-shortcuts --watch",
-    "publish": "npm run build:prod && npm publish dist/ng-keyboard-shortcuts",
+    "publish": "npm run build:prod && npm publish --access public dist/ng-keyboard-shortcuts",
     "package": "npm run build:prod && npm run npm-pack",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -70,6 +74,7 @@
     "ng-packagr": "^5.7.1",
     "npm-run-all": "^4.1.5",
     "protractor": "~5.4.2",
+    "rimraf": "^3.0.2",
     "rollup-plugin-node-resolve": "^5.2.0",
     "ts-node": "~8.5.4",
     "tsickle": "^0.37.1",

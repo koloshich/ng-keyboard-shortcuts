@@ -20,10 +20,11 @@ import {
     combineLatest
 } from "rxjs";
 import {
+    AllowIn,
     ParsedShortcut,
     ShortcutEventOutput,
     ShortcutInput
-} from "./ng-keyboard-shortcuts.interfaces";
+} from './ng-keyboard-shortcuts.interfaces';
 import {
     catchError,
     filter,
@@ -103,10 +104,15 @@ export class KeyboardShortcutsService implements OnDestroy {
         if (target === shortcut.target) {
             return true;
         }
-        if (shortcut.allowIn.length) {
-            return !difference(this._ignored, shortcut.allowIn).includes(target.nodeName);
-        }
-        return !this._ignored.includes(target.nodeName);
+
+        const ignored = shortcut.allowIn.length
+          ? difference(this._ignored, shortcut.allowIn)
+          : this._ignored;
+
+        return !(
+          ignored.includes(target.nodeName) ||
+          ignored.includes(AllowIn.CKEditor) && target.closest(AllowIn.CKEditor)
+        );
     };
 
     /**
